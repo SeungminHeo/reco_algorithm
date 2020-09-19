@@ -95,10 +95,3 @@ class evaluate:
         for i in range(len_truth):
             idcg += 1.0 / math.log(i + 2, 2)
         return self.DCG()/idcg
-
-truth = [1,2,3,4,5]
-predict = [3, 1, 8, 9 ,4]
-
-eval = evaluate()
-eval.set_data(truth, predict)
-print(eval.NDCG())
