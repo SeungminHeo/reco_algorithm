@@ -4,7 +4,7 @@ import unittest
 import sys
 sys.path.append("../evaluate")
 
-from evaluate import evaluate
+from evaluate import Evaluate
 
 
 class evaluate_test(unittest.TestCase):

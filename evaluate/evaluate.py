@@ -4,7 +4,7 @@ import logging.config
 
 logging.config.fileConfig('../conf/logging.conf')
 
-class evaluate:
+class Evaluate:
     '''
     truth = [2, 4, 3, 5, 1]
     predict = [3, 4, 5, 3, 2]
