@@ -1,0 +1,7 @@
+model:
+  als:
+    params:
+      r_lambda : 40
+      nf : 200
+      alpha : 40
+      iteration : 15
