@@ -38,4 +38,4 @@ class Rankfusion:
                     rets[item] = rets.setdefault(item, 0) + 1.0/(self.k + algo_pool.index(item)+1)
         rets = {k: v for k, v in sorted(rets.items(), key=lambda item: item[1])}
         self.logger.info("Recomendation items : %s" % rets)
-        return list(rets.keys())
+        return rets
