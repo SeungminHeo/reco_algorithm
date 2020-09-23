@@ -8,7 +8,12 @@ import numpy as np
 logging.config.fileConfig('../conf/logging.conf')
 
 class ALS:
-    def __init__(self):  # conf 파일을 통해서 초기화 해주자
+    def __init__(self):
+        """Python implementation for C-ALS.
+
+        Implementation of Collaborative Filtering for Implicit Feedback datasets.
+
+        Reference: http://yifanhu.net/PUB/cf.pdf"""
         params = yaml.load(open("../conf/model.yml").read(), Loader=yaml.Loader)['model']['als']['params']
         self.r_lambda = params.get('r_lambda')
         self.nf = params.get('nf')
