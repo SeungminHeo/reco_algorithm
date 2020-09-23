@@ -4,6 +4,7 @@ import logging.config
 
 logging.config.fileConfig('../conf/logging.conf')
 
+
 class Evaluate:
     '''
     truth = [2, 4, 3, 5, 1]
@@ -19,7 +20,7 @@ class Evaluate:
         self.predict = predict
 
     # MAE
-    def MAE(self):
+    def mae(self):
         if not hasattr(self, "truth") or not hasattr(self, "predict"):
             self.logger.error("don't set dataset")
             return -1
@@ -27,11 +28,11 @@ class Evaluate:
         num_rating = len(self.truth)
         for r, p in zip(self.truth, self.predict):
             sum_rating += abs(p - r)
-        self.logger.info('MAE : %f' %(sum_rating / num_rating))
+        self.logger.info('MAE : %f' % (sum_rating / num_rating))
         return sum_rating / num_rating
 
     # MSE
-    def MSE(self):
+    def mse(self):
         if not hasattr(self, "truth") or not hasattr(self, "predict"):
             self.logger.error("don't set dataset")
             return -1
@@ -39,11 +40,11 @@ class Evaluate:
         num_rating = len(self.truth)
         for r, p in zip(self.truth, self.predict):
             sum_rating += abs(p - r) ** 2
-        self.logger.info('MSE : %f' %(sum_rating / num_rating))
+        self.logger.info('MSE : %f' % (sum_rating / num_rating))
         return sum_rating / num_rating
 
     # RMSE
-    def RMSE(self):
+    def rmse(self):
         if not hasattr(self, "truth") or not hasattr(self, "predict"):
             self.logger.error("don't set dataset")
             return -1
@@ -51,11 +52,11 @@ class Evaluate:
         num_rating = len(self.truth)
         for r, p in zip(self.truth, self.predict):
             sum_rating += abs(p - r) ** 2
-        self.logger.info('RMSE : %f' %((sum_rating / num_rating) ** (1 / 2)))
+        self.logger.info('RMSE : %f' % ((sum_rating / num_rating) ** (1 / 2)))
         return (sum_rating / num_rating) ** (1 / 2)
 
     # AP@k
-    def AP_k(self, k):
+    def ap_k(self, k):
         if not hasattr(self, "truth") or not hasattr(self, "predict"):
             self.logger.error("don't set dataset")
             return -1
@@ -69,11 +70,11 @@ class Evaluate:
                 ap_sum += true_count / (idx + 1)
             if k == 0:
                 break
-        self.logger.info('AP@%f : %f' %(k, ap_sum / m))
+        self.logger.info('AP@%f : %f' % (k, ap_sum / m))
         return ap_sum / m
 
     # DCG
-    def DCG(self):
+    def dcg(self):
         if not hasattr(self, "truth") or not hasattr(self, "predict"):
             self.logger.error("don't set dataset")
             return -1
@@ -81,11 +82,11 @@ class Evaluate:
         for i, r in enumerate(self.predict):
             if r in self.truth:
                 dcg += 1.0 / math.log(i + 2, 2)
-        self.logger.info('DCG : %f' %(dcg))
+        self.logger.info('DCG : %f' % (dcg))
         return dcg
 
     # NDCG
-    def NDCG(self):
+    def ndcg(self):
         if not hasattr(self, "truth") or not hasattr(self, "predict"):
             self.logger.error("don't set dataset")
             return -1
@@ -98,5 +99,5 @@ class Evaluate:
         for i, r in enumerate(self.predict):
             if r in self.truth:
                 dcg += 1.0 / math.log(i + 2, 2)
-        self.logger.info('NDCG : %f' %(dcg/idcg)) 
+        self.logger.info('NDCG : %f' % (dcg/idcg))
         return dcg/idcg
