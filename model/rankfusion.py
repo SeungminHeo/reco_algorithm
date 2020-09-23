@@ -11,7 +11,7 @@ logging.config.fileConfig('../conf/logging.conf')
 class Rankfusion:
     """Python implementation for RankFusion.
 
-    Reciprocal Rank Fusion outperforms Condorcet and individual Rank Learning Methods.
+    Implementation of Reciprocal Rank Fusion outperforms Condorcet and individual Rank Learning Methods.
 
     Reference: https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.150.2291&rep=rep1&type=pdf"""
     def __init__(self):
