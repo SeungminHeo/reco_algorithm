@@ -4,6 +4,7 @@ import yaml
 from easydict import EasyDict
 import numpy as np
 logging.config.fileConfig('../conf/logging.conf')
+model_config = yaml.load(open("../conf/model.yml").read(), Loader=yaml.Loader)['model']
 
 
 class ALS:
@@ -13,7 +14,7 @@ class ALS:
         Implementation of Collaborative Filtering for Implicit Feedback datasets.
 
         Reference: http://yifanhu.net/PUB/cf.pdf"""
-        params = yaml.load(open("../conf/model.yml").read(), Loader=yaml.Loader)['model']['als']['params']
+        params = model_config['als']['params']
         self.r_lambda = params.get('r_lambda')
         self.nf = params.get('nf')
         self.alpha = params.get('alpha')
