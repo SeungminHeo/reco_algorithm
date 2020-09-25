@@ -23,7 +23,7 @@ class ALS:
         self.logger.info('start ALS ')
         self.logger.info('ALS parameters -> (r_lambda : %f), (nf : %f), (alpha : %f), (iteration : %f)' %(self.r_lambda, self.nf, self.alpha, self.iteration))
 
-    def set_data(self, r):  # R : array(user - item)
+    def set_data(self, r):  # r : array(user - item)
         self.nu = r.shape[0]
         self.ni = r.shape[1]
 
@@ -35,7 +35,7 @@ class ALS:
         self.P[self.P > 0] = 1
         self.C = 1 + self.alpha * r  # Confidence matrix
 
-    def _loss_function(self, predict):  # xTy : predict
+    def _loss_function(self, predict):
         predict_error = np.square(self.P - predict)
         confidence_error = np.sum(self.C * predict_error)
         regularization = self.r_lambda * (np.sum(np.square(self.X)) + np.sum(np.square(self.Y)))
@@ -43,22 +43,22 @@ class ALS:
         return np.sum(predict_error), confidence_error, regularization, total_loss
 
     def _optimize_user(self):
-        yt = np.transpose(self.Y)
+        yT = np.transpose(self.Y)
         for u in range(self.nu):
             cu = np.diag(self.C[u])
-            yt_cu_y = np.matmul(np.matmul(yt, cu), self.Y)
+            yT_cu_y = np.matmul(np.matmul(yT, cu), self.Y)
             li = np.dot(self.r_lambda, np.identity(self.nf))
-            yt_cu_pu = np.matmul(np.matmul(yt, cu), self.P[u])
-            self.X[u] = np.linalg.solve(yt_cu_y + li, yt_cu_pu)
+            yT_cu_pu = np.matmul(np.matmul(yT, cu), self.P[u])
+            self.X[u] = np.linalg.solve(yT_cu_y + li, yT_cu_pu)
 
     def _optimize_item(self):
-        xt = np.transpose(self.X)
+        xT = np.transpose(self.X)
         for i in range(self.ni):
             ci = np.diag(self.C[:, i])
-            xt_ci_x = np.matmul(np.matmul(xt, ci), self.X)
+            xT_ci_x = np.matmul(np.matmul(xT, ci), self.X)
             li = np.dot(self.r_lambda, np.identity(self.nf))
-            xt_ci_pi = np.matmul(np.matmul(xt, ci), self.P[:, i])
-            self.Y[i] = np.linalg.solve(xt_ci_x + li, xt_ci_pi)
+            xT_ci_pi = np.matmul(np.matmul(xT, ci), self.P[:, i])
+            self.Y[i] = np.linalg.solve(xT_ci_x + li, xT_ci_pi)
 
     def train(self):
         predict_errors = []
