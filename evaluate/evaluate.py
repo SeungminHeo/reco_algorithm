@@ -1,8 +1,4 @@
 import math
-import logging
-import logging.config
-
-logging.config.fileConfig('../conf/logging.conf')
 
 
 class Evaluate:
@@ -11,8 +7,9 @@ class Evaluate:
     predict = [3, 4, 5, 3, 2]
     Evaluate the recommendation system.
     '''
-    def __init__(self):
-        self.logger = logging.getLogger('evaluate')
+
+    def __init__(self, logger):
+        self.logger = logger
         self.logger.info('start evaluate')
 
     def set_data(self, truth, predict):
@@ -94,10 +91,10 @@ class Evaluate:
         len_truth = len(self.truth)
         for i in range(len_truth):
             idcg += 1.0 / math.log(i + 2, 2)
-            
+
         dcg = 0.0
         for i, r in enumerate(self.predict):
             if r in self.truth:
                 dcg += 1.0 / math.log(i + 2, 2)
-        self.logger.info('NDCG : %f' % (dcg/idcg))
-        return dcg/idcg
+        self.logger.info('NDCG : %f' % (dcg / idcg))
+        return dcg / idcg
