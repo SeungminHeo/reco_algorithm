@@ -1,26 +1,26 @@
-import logging
-import logging.config
-import yaml
 from easydict import EasyDict
 import numpy as np
-logging.config.fileConfig('../conf/logging.conf')
-model_config = yaml.load(open("../conf/model.yml").read(), Loader=yaml.Loader)['model']
+
 
 
 class ALS:
-    def __init__(self):
-        """Python implementation for C-ALS.
+    """Python implementation for C-ALS.
 
-        Implementation of Collaborative Filtering for Implicit Feedback datasets.
+            Implementation of Collaborative Filtering for Implicit Feedback datasets.
 
-        Reference: http://yifanhu.net/PUB/cf.pdf"""
-        params = model_config['als']['params']
+            Reference: http://yifanhu.net/PUB/cf.pdf"""
+    def __init__(self, model_config, logger):
+        '''
+            model_config : config.yml['model_config']['als']
+            logger : getLogger('ALS')
+        '''
+        params = model_config['params']
         self.r_lambda = params.get('r_lambda')
         self.nf = params.get('nf')
         self.alpha = params.get('alpha')
         self.iteration = params.get('iteration')
 
-        self.logger = logging.getLogger('ALS')
+        self.logger = logger
         self.logger.info('start ALS ')
         self.logger.info('ALS parameters -> (r_lambda : %f), (nf : %f), (alpha : %f), (iteration : %f)' %(self.r_lambda, self.nf, self.alpha, self.iteration))
 
