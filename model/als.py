@@ -20,6 +20,11 @@ class ALS:
         self.alpha = params.get('alpha')
         self.iteration = params.get('iteration')
 
+        self.predict_errors = []
+        self.confidence_errors = []
+        self.regularization_list = []
+        self.total_losses = []
+
         self.logger = logger
         self.logger.info('start ALS ')
         self.logger.info('ALS parameters -> (r_lambda : %f), (nf : %f), (alpha : %f), (iteration : %f)' %(self.r_lambda, self.nf, self.alpha, self.iteration))
@@ -62,11 +67,6 @@ class ALS:
             self.Y[i] = np.linalg.solve(xT_ci_x + li, xT_ci_pi)
 
     def train(self):
-        predict_errors = []
-        confidence_errors = []
-        regularization_list = []
-        total_losses = []
-
         for i in range(self.iteration):
             if i != 0:
                 self._optimize_user()
@@ -74,10 +74,10 @@ class ALS:
             predict = np.matmul(self.X, np.transpose(self.Y))
             predict_error, confidence_error, regularization, total_loss = self._loss_function(predict)
 
-            predict_errors.append(predict_error)
-            confidence_errors.append(confidence_error)
-            regularization_list.append(regularization)
-            total_losses.append(total_loss)
+            self.predict_errors.append(predict_error)
+            self.confidence_errors.append(confidence_error)
+            self.regularization_list.append(regularization)
+            self.total_losses.append(total_loss)
 
             self.logger.debug('----------------step %d----------------' % i)
             self.logger.debug("predict error: %f" % predict_error)
