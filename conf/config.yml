@@ -1,0 +1,32 @@
+model_config:
+    als:
+      params:
+        r_lambda : 40
+        nf : 200
+        alpha : 40
+        iteration : 15
+    rankfusion:
+      params:
+        k : 0
+logging_config:
+    version: 1
+    disable_existing_loggers: True
+    formatters:
+        simpleFormatter:
+            format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    handlers:
+        consoleHandler:
+            class: logging.StreamHandler
+            level: DEBUG
+            formatter: simpleFormatter
+            stream: ext://sys.stdout
+    loggers:
+        root:
+            level: DEBUG
+            handlers: ['consoleHandler']
+            level: DEBUG
+        simpleExample:
+            level: DEBUG
+            handlers: ['consoleHandler']
+            qualname: simpleExample
+            propagate: 0
