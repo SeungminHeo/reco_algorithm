@@ -14,7 +14,7 @@ class Rankfusion:
     Reference: https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.150.2291&rep=rep1&type=pdf"""
     def __init__(self, model_config, logger):
         '''
-        model_config : config.yml['model_config']['als']
+        model_config : config.yml['model_config']['rankfusion']
         logger : getLogger('Rankfusion')
         '''
         params = model_config['params']
