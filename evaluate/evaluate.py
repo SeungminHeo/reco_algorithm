@@ -19,7 +19,7 @@ class Evaluate:
     # MAE
     def mae(self):
         if not hasattr(self, "truth") or not hasattr(self, "predict"):
-            self.logger.error("don't set dataset")
+            self.logger.error("dataset was not initialized")
             return -1
         sum_rating = 0  # P-R 절대값 합
         num_rating = len(self.truth)
@@ -31,7 +31,7 @@ class Evaluate:
     # MSE
     def mse(self):
         if not hasattr(self, "truth") or not hasattr(self, "predict"):
-            self.logger.error("don't set dataset")
+            self.logger.error("dataset was not initialized")
             return -1
         sum_rating = 0  # P-R 절대값의 제곱 합
         num_rating = len(self.truth)
@@ -43,7 +43,7 @@ class Evaluate:
     # RMSE
     def rmse(self):
         if not hasattr(self, "truth") or not hasattr(self, "predict"):
-            self.logger.error("don't set dataset")
+            self.logger.error("dataset was not initialized")
             return -1
         sum_rating = 0  # P-R 절대값의 제곱 합
         num_rating = len(self.truth)
@@ -55,7 +55,7 @@ class Evaluate:
     # AP@k
     def ap_k(self, k):
         if not hasattr(self, "truth") or not hasattr(self, "predict"):
-            self.logger.error("don't set dataset")
+            self.logger.error("dataset was not initialized")
             return -1
         ap_sum = 0
         true_count = 0
@@ -73,7 +73,7 @@ class Evaluate:
     # DCG
     def dcg(self):
         if not hasattr(self, "truth") or not hasattr(self, "predict"):
-            self.logger.error("don't set dataset")
+            self.logger.error("dataset was not initialized")
             return -1
         dcg = 0.0
         for i, r in enumerate(self.predict):
@@ -85,7 +85,7 @@ class Evaluate:
     # NDCG
     def ndcg(self):
         if not hasattr(self, "truth") or not hasattr(self, "predict"):
-            self.logger.error("don't set dataset")
+            self.logger.error("dataset was not initialized")
             return -1
         idcg = 0.0
         len_truth = len(self.truth)
