@@ -1,6 +1,9 @@
 from easydict import EasyDict
 import numpy as np
 from tqdm import tqdm
+from scipy.sparse import vstack
+from scipy import sparse
+from scipy.sparse.linalg import spsolve
 
 
 class ALS:
@@ -104,4 +107,4 @@ class ALS:
         if userid not in id_to_idx_mapping.keys():  # If the ID is not included in the als model
             return -1
         idx = id_to_idx_mapping[userid]
-        return self.X[i].dot(self.Y.T)
+        return self.X[idx].dot(self.Y.T)
