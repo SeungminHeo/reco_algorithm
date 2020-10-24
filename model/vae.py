@@ -1,8 +1,11 @@
+import sys
 import copy
 from typing import List
 import numpy as np
 import tensorflow as tf
 import tensorflow_addons as tfa
+sys.path.insert(1, '../evaluate')
+from evaluate import Evaluate
 
 class ENC_LAYER(tf.keras.layers.Layer):
     def __init__(self, SPECS:List[dict], **kwargs):
@@ -173,13 +176,10 @@ class VAE:
     def _loss_function(self, output, y, mu, log_var, anneal=None):
         '''
         loss = CrossEntropy(output, y) - (anneal) * (KL_div)
-        ! add regularization (done)
         ! add adjustable anneal
         '''
         if anneal:
             self._anneal = anneal
-        # cross entropy loss
-        # bce = self._BCE(y, output)
 
         output_log_softmax = tf.nn.log_softmax(output)
 
@@ -190,7 +190,6 @@ class VAE:
         kl = -0.5* tf.reduce_mean(tf.reduce_sum(1 + log_var - tf.pow(mu, 2) - tf.exp(log_var), axis=1))
 
         return neg_ll + self._anneal * kl
-        # return bce + self._anneal * kl
 
     def _save_checkpoint(self):
         # ! add checkpointing
@@ -260,7 +259,6 @@ class VAE:
             if validation:
                 validation_score = 0
                 for valid_e, (valid_batch_input, valid_batch_label) in enumerate(self._valid_generator()):
-                    # output = self.inference(valid_batch_input)
                     output = self._recommend(valid_batch_input)
                     validation_score += self.validate(valid_batch_label, output)
                 validation_score = validation_score / (valid_e+1)
@@ -289,9 +287,9 @@ class VAE:
         seen = np.where(inp!=0)
         output, _, _ = self.model(inp)
         output = output.numpy()
-        # output[tuple(np.vstack(seen).tolist())] = -np.inf
+        output[tuple(np.vstack(seen).tolist())] = -np.inf
         final_outputs = np.argsort(output)[:,-topk:][:,::-1]
-        # assert self._check_seen_removed(seen, final_outputs) == 0, "Seen not filtered"
+        assert self._check_seen_removed(seen, final_outputs) == 0, "Seen not filtered"
         return final_output
     
     def recommend(self, inp, idx2user:dict, topk=100):
