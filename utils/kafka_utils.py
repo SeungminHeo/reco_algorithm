@@ -17,8 +17,8 @@ class KafkaTopicConsumer:
     def fetch_batch_messages(self, group_id: str, topic_name: str, num_messages: int) -> List[Dict]:
         """
         Fetch messages for lagged messages. Update parameter or models by N messages.
-        :param group_id: (String) consumer group name
-        :param topic_name: (String) topic to fetch
+        :param group_id: (String) configure group_id for Kafka consumer
+        :param topic_name: (String) configure broker topic for Kafka consumer
         :param num_messages: (String) the number of message to fetch
         :return: List of Json Messages, especially List of Dictionary in Python
         """
@@ -37,8 +37,8 @@ class KafkaTopicConsumer:
     def fetch_batch_messages_by_time(self, group_id: str, topic_name: str, time_diff_hours: int):
         """
         Fetch messages from selected time interval
-        :param group_id: (String) consumer group name
-        :param topic_name: (String) topic to fetch
+        :param group_id: (String) configure group_id for Kafka consumer
+        :param topic_name: (String) configure broker topic for Kafka consumer
         :param time_diff_hours: (Integer) The time interval you want to rewind in hours.
         :return: List of Json Messages, especially List of Dictionary in Python
         """
@@ -66,18 +66,41 @@ class KafkaFeatureBuilder(KafkaTopicConsumer):
         super().__init__(kafka_config)
 
     def CF(self, group_id: str, topic_name: str, time_diff_hours: int) -> str:
+        """
+        Feature building for Collaborative Filtering.
+        :param group_id: (String) configure group_id for Kafka consumer
+        :param topic_name: (String) configure broker topic for Kafka consumer
+        :param time_diff_hours: (Integer) The time interval you want to rewind in hours.
+        :return: (String) Feature for CF.
+        """
         feature_message = self.fetch_batch_messages_by_time(group_id=group_id,
                                                             topic_name=topic_name,
                                                             time_diff_hours=time_diff_hours)
         return self.cf_feature_build(self.count_by_piwikId_itemId(feature_message))
 
     def GC(self, group_id: str, topic_name: str, time_diff_hours: int, topN: int) -> str:
+        """
+        Feature building for Global Click.
+        :param group_id: (String) configure group_id for Kafka consumer
+        :param topic_name: (String) configure broker topic for Kafka consumer
+        :param time_diff_hours: (Integer) The time interval you want to rewind in hours.
+        :param topN: (Integer) The number of topN items to calcuration
+        :return: (String) Feature for GC.
+        """
         feature_message = self.fetch_batch_messages_by_time(group_id=group_id,
                                                             topic_name=topic_name,
                                                             time_diff_hours=time_diff_hours)
         return self.gc_feature_build(self.count_by_itemId(feature_message), topN=topN)
 
     def CategoryGC(self, group_id: str, topic_name: str, time_diff_hours: int, topN: int) -> str:
+        """
+        Feature building for Global Click By Category.
+        :param group_id: (String) configure group_id for Kafka consumer
+        :param topic_name: (String) configure broker topic for Kafka consumer
+        :param time_diff_hours: (Integer) The time interval you want to rewind in hours.
+        :param topN: (Integer) The number of topN items to calcuration
+        :return: (String) Feature for GC.
+        """
         feature_message = self.fetch_batch_messages_by_time(group_id=group_id,
                                                             topic_name=topic_name,
                                                             time_diff_hours=time_diff_hours)
