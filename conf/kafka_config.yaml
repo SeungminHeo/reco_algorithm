@@ -1,0 +1,19 @@
+kafka_config:
+    bootstrap_servers: 115.85.181.243:9092,115.85.180.11:9092,115.85.180.110:9092
+    auto_offset_reset: earliest
+    consumer_groups:
+        cf_model_feed: CFModelFeeding
+        cf_model_feed_by_time: CFModelFeedingByTime
+        ranking_by_time: RankingByTime
+        reco_engine: RecoEngine
+
+
+
+kafka_topics:
+    click_log: ClickLog
+    log_data_raw: LogDataRaw
+    order_complete_log: OrderCompleteLog
+    search_log: SearchLog
+    cart_log: CartLog
+    click_matrix: ClickMatrix
+    click_ranking: ClickRanking
