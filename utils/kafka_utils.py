@@ -10,7 +10,7 @@ class KafkaTopicConsumer:
     def __init__(self, kafka_config: dict):
         self.config = kafka_config
 
-    def _fetch_batch_messages(self, group_id: str, topic_name: str, num_messages: int) -> List[Dict]:
+    def fetch_batch_messages(self, group_id: str, topic_name: str, num_messages: int) -> List[Dict]:
         """
         Fetch messages for lagged messages. Update parameter or models by N messages.
         :param group_id: (String) consumer group name
@@ -30,7 +30,7 @@ class KafkaTopicConsumer:
 
         return [json_deserializer(msg) for msg in msgs]
 
-    def _fetch_batch_messages_by_time(self, group_id: str, topic_name: str, time_diff_hours: int):
+    def fetch_batch_messages_by_time(self, group_id: str, topic_name: str, time_diff_hours: int):
         """
         Fetch messages from selected time interval
         :param group_id: (String) consumer group name
@@ -94,6 +94,41 @@ def Ranking_feature_build(processed_count: List[Dict], topN: int) -> str:
     feature_string += "}"
 
     return feature_string
+
+
+def Category_Ranking_feature_build(processed_count: List[Dict], topN: int) -> str:
+    sorted_click_count = sorted(processed_count, key=itemgetter("categoryId", "clickCount"), reverse=True)
+    groupby_click_count = groupby(sorted_click_count, key=itemgetter("categoryId"))
+
+    feature_string = "{"
+    for enum, kv in enumerate(groupby_click_count):
+        if enum > 0:
+            feature_string += ", "
+        feature_string += '"' + str(kv[0]) + '": {'
+        temp_string = ""
+        for e, v in enumerate(kv[1]):
+            if e > 0:
+                temp_string += ", "
+            temp_string += '"' + v["itemId"] + '": ' + str(v["clickCount"])
+        feature_string += temp_string + "}"
+    feature_string += "}"
+
+    return feature_string
+
+
+def count_by_categoryId_itemId(messages: List[Dict]) -> List[Dict]:
+    messages = filter(lambda x: x["categoryId"] != None, messages)
+    sorted_msgs = sorted(messages, key=itemgetter('categoryId', 'itemId'))
+    groupby_msgs = groupby(sorted_msgs, key=itemgetter('categoryId', 'itemId'))
+
+    processed_msgs = [{
+        "categoryId": key[0],
+        "itemId": key[1],
+        "clickCount": list(value).__len__(),
+    } for key, value in groupby_msgs]
+
+    return processed_msgs
+
 
 
 def count_by_piwikId_itemId(messages: List[Dict]) -> List[Dict]:
