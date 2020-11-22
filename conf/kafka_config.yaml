@@ -1,5 +1,6 @@
 kafka_config:
     bootstrap_servers: 115.85.181.243:9092,115.85.180.11:9092,115.85.180.110:9092
+    bootstrap_servers_private: 10.41.155.97:29092,10.41.155.167:29092,10.41.231.155:29092
     auto_offset_reset: earliest
     consumer_groups:
         cf_model_feed: CFModelFeeding
