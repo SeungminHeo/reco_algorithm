@@ -5,6 +5,7 @@ kafka_config:
         cf_model_feed: CFModelFeeding
         cf_model_feed_by_time: CFModelFeedingByTime
         ranking_by_time: RankingByTime
+        category_ranking_by_time: CategoryRankingByTime
         reco_engine: RecoEngine
 
 
