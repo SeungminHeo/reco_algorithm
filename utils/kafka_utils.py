@@ -30,7 +30,7 @@ class KafkaTopicConsumer:
             }
         )
         consumer.subscribe([topic_name])
-        msgs = consumer.consume(num_messages, timeout=10)
+        msgs = consumer.consume(num_messages, timeout=5)
 
         return [self.json_deserializer(msg) for msg in msgs]
 
@@ -56,7 +56,7 @@ class KafkaTopicConsumer:
         offset_for_times = consumer.offsets_for_times(partition_list)
 
         consumer.assign(offset_for_times)
-        msgs = consumer.consume(time_diff_hours * 5000, timeout=20)
+        msgs = consumer.consume(time_diff_hours * 5000, timeout=5)
 
         return [self.json_deserializer(msg) for msg in msgs]
 
