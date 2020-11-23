@@ -2,6 +2,14 @@
 
 Recommendation algorithm set
 
+## Reco Setting
+
+### Installing Implicit
+```
+pip install implicit
+```
+
+
 
 ## Kafka Setting 
 
