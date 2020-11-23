@@ -1,7 +1,6 @@
 import yaml
 import json
 import implicit
-import logging
 import logging.config
 
 from scipy import sparse
@@ -107,9 +106,6 @@ class ALS_FB:
                 self.max_ndcg = ndcg
                 self.best_params = params
 
-            print("ALS hyperparameter : ", params)
-            print("ALS max ndcg : ", ndcg)
-
         print("ALS best hyperparameter : ", self.best_params)
         print("ALS max ndcg : ", self.max_ndcg)
 
@@ -143,7 +139,6 @@ class ALS_FB:
         while True:
             self.train()
             self.reco()
-            break
 
 
 
