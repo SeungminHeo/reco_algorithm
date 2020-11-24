@@ -1,4 +1,3 @@
-import sys
 import yaml
 import json
 import logging.config
@@ -8,28 +7,26 @@ from argparse import ArgumentParser
 from utils.kafka_config import CONFIG
 from utils.kafka_utils import KafkaFeatureBuilder
 from utils.mongo_connect import MongoConnection
+from model.rankfusion import Rankfusion
 
-
-sys.path.append("./model")
-from rankfusion import Rankfusion
 
 class Reco:
-    def __init__(self, reco_config, logger, FeatureBuilder, als_client, reco_client):
-        ## logger
+    def __init__(self, reco_config, logger, featurebuilder, als_client, reco_client):
+        # logger
         self.logger = logger
         self.logger.info('start Reco')
 
-        ## kafka
-        self.FeatureBuilder = FeatureBuilder
+        # kafka
+        self.FeatureBuilder = featurebuilder
 
-        ## reco config
+        # reco config
         self.reco_config = reco_config
 
-        ## Rank fusion
+        # Rank fusion
         model_config = configs["model_config"]['rankfusion']
         self.rank = Rankfusion(model_config, logger)
 
-        ## mongo
+        # mongo
         self.als_client = als_client
         self.reco_client = reco_client
 
@@ -53,7 +50,6 @@ class Reco:
         self.als_reco = self.reco_result(als_mongo)
         self.gc_reco = list(gc_kafka.keys())[:20]
 
-
     def reco(self):
         final_reco = []
         for user_id, reco_items in self.als_reco.items():
@@ -71,6 +67,7 @@ class Reco:
         while True:
             self.load_model()
             self.reco()
+
 
 if __name__ == "__main__":
     configs = yaml.load(open("./conf/config.yml").read(), Loader=yaml.Loader)
