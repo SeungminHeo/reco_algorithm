@@ -139,3 +139,5 @@ cython_debug/
 
 # Pycharm IDEA related files
 .idea
+
+*.ipynb
