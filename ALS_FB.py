@@ -14,24 +14,25 @@ from utils.kafka_config import CONFIG
 from utils.kafka_utils import KafkaFeatureBuilder
 from utils.mongo_connect import MongoConnection
 
-class ALS_FB:
-    def __init__(self, fb_config, logger, FeatureBuilder, mongo_client):
-        ## ALS model
+
+class AlsFb:
+    def __init__(self, fb_config, logger, featurebuilder, mongo_client):
+        # ALS model
         self.max_ndcg = 0.0
         self.best_params = {}
 
-        ## convert sparse matrix
+        # convert sparse matrix
         self.user_n, self.item_n = fb_config['to_sparse']['user_n'], fb_config['to_sparse']['item_n']
 
-        ## logger
+        # logger
         self.logger = logger
         self.logger.info('start ALS_FB ')
 
-        ## kafka
-        self.FeatureBuilder = FeatureBuilder
+        # kafka
+        self.FeatureBuilder = featurebuilder
         self.kafka_config = fb_config['kafka']
 
-        ## mongo
+        # mongo
         self.mongo_client = mongo_client
 
     def to_sparse_tuples(self, data, item_count=None, user_n=0, item_n=0):
@@ -61,7 +62,7 @@ class ALS_FB:
                     sparse_tuples.append((user2idx[i], item2idx[j], items2[j]))
         return sparse_tuples, user2idx, item2idx
 
-    def to_sparse(self, data, val=None): # sparse_tuple -> sparse.csr_matrix:
+    def to_sparse(self, data, val=None):  # sparse_tuple -> sparse.csr_matrix:
         data = np.array(data)
         if val is None:
             val = np.ones_like(data[:, 0])
@@ -73,7 +74,7 @@ class ALS_FB:
 
     def train(self):
         item_count = {}
-        CF_feature = json.loads(self.FeatureBuilder.CF(
+        cf_feature = json.loads(self.FeatureBuilder.CF(
             group_id=CONFIG["kafka_config"]["consumer_groups"]["cf_model_feed_by_time"],
             topic_name=CONFIG["kafka_topics"]["click_log"],
             time_diff_hours=self.kafka_config.get('time')
@@ -81,18 +82,18 @@ class ALS_FB:
         grid = ParameterGrid({
             "factors": [10, 30, 50, 70, 90, 110, 150, 200, 250, 300],
             'regularization': [0.001, 0.01, .1, 1, 10, 20, 40],
-            'iterations': [10,20, 30],
+            'iterations': [10, 20, 30],
             'alpha_val': [10, 50, 100]
         })
 
-        for item in CF_feature.values():
+        for item in cf_feature.values():
             for item_id, count in item.items():
                 item_count[item_id] = item_count.get(item_id, 0) + 1
 
-        train_tuples, self.train_user2idx, self.train_item2idx = self.to_sparse_tuples(CF_feature, item_count, self.user_n, self.item_n)
+        train_tuples, self.train_user2idx, self.train_item2idx = self.to_sparse_tuples(cf_feature, item_count,
+                                                                                       self.user_n, self.item_n)
         self.train_sparse = self.to_sparse(np.array(train_tuples)[:, :-1], np.array(train_tuples)[:, -1])
-
-        print(self.train_sparse.shape) # loger 대체
+        print(self.train_sparse.shape)  # loger 대체
 
         for params in grid:
             model = implicit.als.AlternatingLeastSquares(factors=params['factors'],
@@ -112,8 +113,8 @@ class ALS_FB:
         print("ALS max ndcg : ", self.max_ndcg)
 
         self.als_model = implicit.als.AlternatingLeastSquares(factors=self.best_params['factors'],
-                                                         regularization=self.best_params['regularization'],
-                                                         iterations=self.best_params['iterations'])
+                                                              regularization=self.best_params['regularization'],
+                                                              iterations=self.best_params['iterations'])
         data_conf = (self.train_sparse.T * self.best_params['alpha_val']).astype('double')
         self.als_model.fit(data_conf, show_progress=False)
 
@@ -124,7 +125,8 @@ class ALS_FB:
         for user_id in self.train_user2idx.keys():
             user_reco = {}
             user_idx = self.train_user2idx[user_id]
-            reco_item_idx = dict(self.als_model.recommend(user_idx, self.train_sparse, N=10, filter_already_liked_items=False))
+            reco_item_idx = dict(self.als_model.recommend(user_idx, self.train_sparse,
+                                                          N=10, filter_already_liked_items=False))
             reco_item_id = {}
             for item_idx in reco_item_idx.keys():
                 reco_item_id[train_idx2item[item_idx]] = reco_item_idx[item_idx].item()
@@ -135,11 +137,11 @@ class ALS_FB:
 
         self.mongo_client.write_many(final_reco)
 
-
     def run(self):
         while True:
             self.train()
             self.reco()
+
 
 if __name__ == "__main__":
     configs = yaml.load(open("./conf/config.yml").read(), Loader=yaml.Loader)
@@ -159,5 +161,5 @@ if __name__ == "__main__":
 
     mongo_client = MongoConnection('als')
 
-    als_fb = ALS_FB(fb_config, logger, FeatureBuilder, mongo_client)
+    als_fb = AlsFb(fb_config, logger, FeatureBuilder, mongo_client)
     als_fb.run()
