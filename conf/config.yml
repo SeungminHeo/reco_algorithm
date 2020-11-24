@@ -8,6 +8,14 @@ model_config:
     rankfusion:
       params:
         k : 0
+    vae:
+      lr : 1e-3
+      weight_decay : 0.0
+      batch_size : 64
+      epochs : 100
+      logging_info_freq : 100
+      rec_fname : "VAE.json"
+
 logging_config:
     version: 1
     disable_existing_loggers: True
@@ -30,3 +38,17 @@ logging_config:
             handlers: ['consoleHandler']
             qualname: simpleExample
             propagate: 0
+
+main_process:
+    als_fb:
+      kafka:
+        time: 24
+      to_sparse:
+        user_n: 0
+        item_n: 0
+    vae_fb:
+      kafka:
+        time: 24
+      to_sparse:
+        user_n: 0
+        item_n: 0
