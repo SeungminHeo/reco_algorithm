@@ -42,5 +42,6 @@ main_process:
       to_sparse:
         user_n: 0
         item_n: 0
-
-
+    reco:
+      gc:
+        is_used: False
