@@ -4,6 +4,7 @@ from pymongo import MongoClient
 sys.path.append('conf')
 import mongo_config
 
+
 class MongoConnection:
     def __init__(self, collection):
         self.host = mongo_config.DATABASE_CONFIG['host']

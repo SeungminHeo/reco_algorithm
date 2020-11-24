@@ -1,3 +1,4 @@
+import sys
 import yaml
 import json
 import implicit
@@ -8,15 +9,15 @@ from argparse import ArgumentParser
 
 import numpy as np
 import implicit.evaluation
-from tqdm import tqdm
 from sklearn.model_selection import ParameterGrid
 
 from utils.kafka_config import CONFIG
 from utils.kafka_utils import KafkaFeatureBuilder
 
+from utils.mongo_connect import MongoConnection
 
 class ALS_FB:
-    def __init__(self, model_config, fb_config, logger, FeatureBuilder):
+    def __init__(self, fb_config, logger, FeatureBuilder, mongo_client):
         ## ALS model
         self.max_ndcg = 0.0
         self.best_params = {}
@@ -31,6 +32,9 @@ class ALS_FB:
         ## kafka
         self.FeatureBuilder = FeatureBuilder
         self.kafka_config = fb_config['kafka']
+
+        ## mongo
+        self.mongo_client = mongo_client
 
     def to_sparse_tuples(self, data, item_count=None, user_n=0, item_n=0):
         '''
@@ -92,7 +96,7 @@ class ALS_FB:
 
         print(self.train_sparse.shape) # loger 대체
 
-        for params in tqdm(grid):
+        for params in grid:
             model = implicit.als.AlternatingLeastSquares(factors=params['factors'],
                                                          regularization=params['regularization'],
                                                          iterations=params['iterations'])
@@ -122,29 +126,27 @@ class ALS_FB:
         for user_id in self.train_user2idx.keys():
             user_reco = {}
             user_idx = self.train_user2idx[user_id]
-            reco_item_idx = dict(self.als_model.recommend(user_idx, self.train_sparse, N=20, filter_already_liked_items=False))
+            reco_item_idx = dict(self.als_model.recommend(user_idx, self.train_sparse, N=10, filter_already_liked_items=False))
             reco_item_id = {}
             for item_idx in reco_item_idx.keys():
-                reco_item_id[train_idx2item[item_idx]] = reco_item_idx[item_idx]
+                reco_item_id[train_idx2item[item_idx]] = reco_item_idx[item_idx].item()
 
             user_reco["piwikId"] = user_id
             user_reco['recoResult'] = reco_item_id
             final_reco.append(user_reco)
 
-        print(final_reco)
+        self.mongo_client.write_many(final_reco)
 
-
-            
     def run(self):
         while True:
             self.train()
             self.reco()
+            break
 
 
 
 if __name__ == "__main__":
     configs = yaml.load(open("./conf/config.yml").read(), Loader=yaml.Loader)
-    model_config = configs["model_config"]['implicit_als']
     fb_config = configs['main_process']['als_fb']
     logging_config = configs["logging_config"]
 
@@ -159,5 +161,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     FeatureBuilder = KafkaFeatureBuilder(CONFIG)
 
-    als_fb = ALS_FB(model_config, fb_config, logger, FeatureBuilder)
+    mongo_client = MongoConnection('als')
+
+    als_fb = ALS_FB(fb_config, logger, FeatureBuilder, mongo_client)
     als_fb.run()
