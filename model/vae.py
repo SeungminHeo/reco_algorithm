@@ -3,7 +3,6 @@ import copy
 from typing import List
 import numpy as np
 import tensorflow as tf
-import tensorflow_addons as tfa
 sys.path.insert(1, '../evaluate')
 from evaluate import Evaluate
 
@@ -129,15 +128,13 @@ class VAE:
         # model is initialized at self.set_data
         self.model = model
         self._enc_specs = enc_specs
-        print("VAE ENC SPEC: ", enc_specs)
+        self.logger.info("VAE ENC SPEC: {}".format(enc_specs))
         self._additional_specs = additional_specs
-        # self._optimizer = optimizer(learning_rate=self.model_config.lr, weight_decay=self.model_config.weight_decay)
         self._optimizer = optimizer(learning_rate=self.model_config.lr)
 
         self._eval = Evaluate(logger)
 
         # initialize supporting functions
-        # self._BCE = tf.keras.losses.BinaryCrossentropy()
         self._mean_loss = tf.keras.metrics.Mean(name="train_loss")
         self._mean_MSE = tf.keras.metrics.MeanSquaredError(name="validation_mse")
 
@@ -153,12 +150,11 @@ class VAE:
         steps = self._user_size // batch_size + 1
         for i in range(steps):
             if i*batch_size+batch_size >= self._user_size:
-                yield tf.convert_to_tensor(self.data[shuffle_idx[i*batch_size:]].toarray())
+                yield tf.convert_to_tensor(self.data[shuffle_idx[i*batch_size:]].toarray().astype(np.float32))
             else:
-                yield tf.convert_to_tensor(self.data[shuffle_idx[i*batch_size:i*batch_size+batch_size]].toarray())
+                yield tf.convert_to_tensor(self.data[shuffle_idx[i*batch_size:i*batch_size+batch_size]].toarray().astype(np.float32))
     
     def _valid_generator(self):
-        # ! merge with _generator function
         input_data = self.valid_data_input
         label_data = self.valid_data_label
         batch_size = self.model_config.batch_size
@@ -167,24 +163,27 @@ class VAE:
         steps = input_data.shape[0] // batch_size + 1
         for i in range(steps):
             if i*batch_size+batch_size > input_data.shape[0]:
-                yield tf.convert_to_tensor(input_data[shuffle_idx[i*batch_size:]].toarray()), \
-                      tf.convert_to_tensor(label_data[shuffle_idx[i*batch_size:]].toarray())
+                yield tf.convert_to_tensor(input_data[shuffle_idx[i*batch_size:]].toarray().astype(np.float32)), \
+                      tf.convert_to_tensor(label_data[shuffle_idx[i*batch_size:]].toarray().astype(np.float32))
             elif i*batch_size+batch_size < input_data.shape[0]:
-                yield tf.convert_to_tensor(input_data[shuffle_idx[i*batch_size:i*batch_size+batch_size]].toarray()), \
-                      tf.convert_to_tensor(label_data[shuffle_idx[i*batch_size:i*batch_size+batch_size]].toarray())
+                yield tf.convert_to_tensor(\
+                        input_data[shuffle_idx[i*batch_size:i*batch_size+batch_size]].toarray().astype(np.float32)), \
+                      tf.convert_to_tensor(\
+                        label_data[shuffle_idx[i*batch_size:i*batch_size+batch_size]].toarray().astype(np.float32))
 
     def _loss_function(self, output, y, mu, log_var, anneal=None):
         '''
         loss = CrossEntropy(output, y) - (anneal) * (KL_div)
-        ! add adjustable anneal
+        ! add adjustable anneal (safe for now)
         '''
         if anneal:
             self._anneal = anneal
 
         output_log_softmax = tf.nn.log_softmax(output)
 
+        # NLL
         neg_ll = -tf.math.reduce_mean(tf.math.reduce_sum(output_log_softmax * y, axis=-1))
-        # neg_ll = -tf.math.reduce_mean(tf.math.reduce_mean(output_log_softmax * y, axis=-1))
+        # ! consider neg_ll = -tf.math.reduce_mean(tf.math.reduce_mean(output_log_softmax * y, axis=-1))
 
         # KL Divergence
         kl = -0.5* tf.reduce_mean(tf.reduce_sum(1 + log_var - tf.pow(mu, 2) - tf.exp(log_var), axis=1))
@@ -192,7 +191,7 @@ class VAE:
         return neg_ll + self._anneal * kl
 
     def _save_checkpoint(self):
-        # ! add checkpointing
+        # ! add checkpointing (unnecessary for rec sys)
         return 0
 
     @tf.function
@@ -220,10 +219,8 @@ class VAE:
         self._item_size = item_size
         self._enc_specs[0]["input_dim"] = self._item_size
         self.model = self.model(self._enc_specs, self._additional_specs, self.vae_activation)
-        # self.model.build((user_size, item_size))
 
     def train(self, validation=False):
-
         # ! train losses for loss function annealing and external plotting
         self._train_losses = []
         self._train_mse = []
@@ -260,7 +257,7 @@ class VAE:
                 validation_score = 0
                 for valid_e, (valid_batch_input, valid_batch_label) in enumerate(self._valid_generator()):
                     output = self._recommend(valid_batch_input)
-                    validation_score += self.validate(valid_batch_label, output)
+                    validation_score += self._validate(valid_batch_label, output)
                 validation_score = validation_score / (valid_e+1)
                 self.logger.info("Validation nDCG : {:0.6f}".format(validation_score))
                 self._validation_scores.append(validation_score)
@@ -269,40 +266,23 @@ class VAE:
         
         return self.model
 
-    def validate(self, y, output):
+    def _validate(self, y, output):
         a = itertools.count()
-        ndcg_list = np.apply_along_axis(lambda x: self.ndcg_np(y[next(a)], x), 1, output)
+        ndcg_list = np.apply_along_axis(lambda x: self._ndcg_np(y[next(a)], x), 1, output)
         return ndcg_list.mean()
     
-    def ndcg_np(self, aaa, x):
-        truth = np.where(aaa != 0)[0]
+    def _ndcg_np(self, lab, x):
+        truth = np.where(lab != 0)[0]
         self._eval.set_data(truth, x)
         return self._eval.ndcg()
-    
-    def inference(self, inp):
-        output, _, _ = self.model(inp)
-        return output
 
     def _recommend(self, inp, topk=100):
+        # no removal of seen objects for validation since we are using the same dataset
         seen = np.where(inp!=0)
         output, _, _ = self.model(inp)
         output = output.numpy()
-        output[tuple(np.vstack(seen).tolist())] = -np.inf
         final_outputs = np.argsort(output)[:,-topk:][:,::-1]
-        assert self._check_seen_removed(seen, final_outputs) == 0, "Seen not filtered"
-        return final_output
-    
-    def recommend(self, inp, idx2user:dict, topk=100):
-        seen = np.where(inp!=0)
-        output, _, _ = self.model(inp)
-        output = output.numpy()
-        output[tuple(np.vstack(seen).tolist())] = -np.inf
-        final_outputs = np.argsort(output)[:,-topk:][:,::-1]
-        assert self._check_seen_removed(seen, final_outputs) == 0, "Seen not filtered"
-        rec_pool = []
-        for final_output in final_outputs:
-            rec_pool.append(idx2user[final_output])
-        return rec_pool
+        return final_outputs
     
     @staticmethod
     def _check_seen_removed(a:np.array, b:np.array):
@@ -313,4 +293,32 @@ class VAE:
             else:
                 a_aux[i] = [j]
         a = itertools.count()
-        return np.apply_along_axis(lambda x: bool(set(x).intersection(set(a_aux[next(a)]))), 1, b).sum()
+        return np.apply_along_axis(lambda x: \
+                bool(set(x).intersection(set(a_aux[next(a)]))), 1, b).sum()
+
+    def recommend(self, inp,
+                  idx2item:dict,
+                  idx2user:dict,
+                  topk=100,
+                  remove_seen=False,
+                  logits=False):
+        seen = np.where(inp!=0)
+        output, _, _ = self.model(inp)
+        output = output.numpy()
+        if remove_seen:
+          output[tuple(np.vstack(seen).tolist())] = -np.inf
+        final_outputs = np.argsort(output)[:,-topk:][:,::-1]
+        if remove_seen:
+          assert self._check_seen_removed(seen, final_outputs) == 0, "Seen not filtered"
+        rec_pool = dict()
+        rec_logits = dict()
+        cnt = 0
+        for user_idx, final_output in enumerate(final_outputs):
+            item_ids = [idx2item[x] for x in final_output]
+            item_logits = [output[cnt][x] for x in final_output]
+            rec_pool[idx2user[user_idx]] = item_ids
+            rec_logits[idx2user[user_idx]] = list(zip(item_ids, item_logits))
+            cnt += 1
+        if logits:
+            return rec_pool, rec_logits
+        return rec_pool
