@@ -1,4 +1,3 @@
-import sys
 import yaml
 import json
 import implicit
@@ -13,7 +12,6 @@ from sklearn.model_selection import ParameterGrid
 
 from utils.kafka_config import CONFIG
 from utils.kafka_utils import KafkaFeatureBuilder
-
 from utils.mongo_connect import MongoConnection
 
 class ALS_FB:
@@ -137,13 +135,11 @@ class ALS_FB:
 
         self.mongo_client.write_many(final_reco)
 
+
     def run(self):
         while True:
             self.train()
             self.reco()
-            break
-
-
 
 if __name__ == "__main__":
     configs = yaml.load(open("./conf/config.yml").read(), Loader=yaml.Loader)
