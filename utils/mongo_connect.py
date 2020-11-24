@@ -83,3 +83,14 @@ class MongoConnection:
                     results.append({'piwikId': piwikId, 'recoResult': None})
             
             return results
+
+    def load_all(self):
+        if not self.conn:
+            raise ConnectionError("Must connect first")
+
+        else:
+            results = []
+            for result in self.conn.find():
+                results.append({'piwikId': result['piwikId'], 'recoResult': result['recoResult']})
+
+            return results

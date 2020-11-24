@@ -51,4 +51,7 @@ client.load_one('userId1')
 
 # 여러 유저에 대한 결과를 가져올 때
 client.load_many(['userId1', 'userId2'])
+
+# 모든 결과를 가져올 때
+client.load_all()
 ```
