@@ -3,5 +3,6 @@ DATABASE_CONFIG = {
     'port': 27017,
     'user': 'jolp',
     'password': 'Whfvm1234',
+    'authSource': 'admin',
     'dbname': 'jolp'
 }

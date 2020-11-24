@@ -10,6 +10,7 @@ class MongoConnection:
         self.port = mongo_config.DATABASE_CONFIG['port']
         self.user = mongo_config.DATABASE_CONFIG['user']
         self.password = mongo_config.DATABASE_CONFIG['password']
+        self.authSource = mongo_config.DATABASE_CONFIG['authSource']
         self.dbname = mongo_config.DATABASE_CONFIG['dbname']
         self.conn = None
 
@@ -18,7 +19,7 @@ class MongoConnection:
                                 port=self.port,
                                 username=self.user,
                                 password=self.password,
-                                authSource=self.dbname)
+                                authSource=self.authSource)
 
             if collection not in client[self.dbname].list_collection_names():
                 raise ConnectionError(f'"{collection}" not in DB')
