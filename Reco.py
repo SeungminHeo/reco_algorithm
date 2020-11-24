@@ -9,6 +9,7 @@ from utils.kafka_config import CONFIG
 from utils.kafka_utils import KafkaFeatureBuilder
 from utils.mongo_connect import MongoConnection
 
+
 sys.path.append("./model")
 from rankfusion import Rankfusion
 
@@ -70,7 +71,6 @@ class Reco:
         while True:
             self.load_model()
             self.reco()
-
 
 if __name__ == "__main__":
     configs = yaml.load(open("./conf/config.yml").read(), Loader=yaml.Loader)
