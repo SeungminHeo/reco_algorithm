@@ -7,12 +7,13 @@ from argparse import ArgumentParser
 
 from utils.kafka_config import CONFIG
 from utils.kafka_utils import KafkaFeatureBuilder
+from utils.mongo_connect import MongoConnection
 
 sys.path.append("./model")
 from rankfusion import Rankfusion
 
 class Reco:
-    def __init__(self, reco_config, logger, FeatureBuilder):
+    def __init__(self, reco_config, logger, FeatureBuilder, als_client, reco_client):
         ## logger
         self.logger = logger
         self.logger.info('start Reco')
@@ -27,11 +28,15 @@ class Reco:
         model_config = configs["model_config"]['rankfusion']
         self.rank = Rankfusion(model_config, logger)
 
+        ## mongo
+        self.als_client = als_client
+        self.reco_client = reco_client
+
     def reco_result(self, data):
         return {x['piwikId']: list(x['recoResult'].keys()) for x in data}
 
     def load_model(self):
-        als_mongo = [{'piwikId': 'c25fefd88d0d7f7f', 'recoResult': {'896478': 0.98055863, '892297': 0.97110933, '896451': 0.88433284}}, {'piwikId': 'c25adf559a16bde1', 'recoResult': {'896563': 0.6974909, '896568': 0.4477328, '896522': 0.40810347}}]
+        als_mongo = als_client.load_all()
         gc_kafka = json.loads(self.FeatureBuilder.GC(
             group_id=CONFIG["kafka_config"]["consumer_groups"]["ranking_by_time"],
             topic_name=CONFIG["kafka_topics"]["click_log"],
@@ -59,15 +64,12 @@ class Reco:
             user_reco['recoResult'] = reco_items
             final_reco.append(user_reco)
 
-        print(final_reco)
+        reco_client.write_many(final_reco)
 
     def run(self):
         while True:
             self.load_model()
             self.reco()
-            break
-
-
 
 
 if __name__ == "__main__":
@@ -86,5 +88,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     FeatureBuilder = KafkaFeatureBuilder(CONFIG)
 
-    reco = Reco(reco_config, logger, FeatureBuilder)
+    als_client = MongoConnection('als')
+    reco_client = MongoConnection('recoResult')
+
+    reco = Reco(reco_config, logger, FeatureBuilder, als_client, reco_client)
     reco.run()
