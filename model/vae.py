@@ -1,10 +1,12 @@
-import sys
+import itertools
 import copy
+import random
 from typing import List
 import numpy as np
 import tensorflow as tf
-sys.path.insert(1, '../evaluate')
-from evaluate import Evaluate
+from scipy import sparse
+
+from evaluate.evaluate import Evaluate
 
 class ENC_LAYER(tf.keras.layers.Layer):
     def __init__(self, SPECS:List[dict], **kwargs):
