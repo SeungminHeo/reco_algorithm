@@ -42,9 +42,19 @@ logging_config:
             qualname: simpleExample
             propagate: 0
         ALS_FeatureBuilder:
-            level: DEBUG
+            level: INFO
             handlers: [ 'consoleHandler' ]
             qualname: ALS_FeatureBuilder
+            propagate: 0
+        Reco:
+            level: INFO
+            handlers: [ 'consoleHandler' ]
+            qualname: Reco
+            propagate: 0
+        VAE_FeatureBuilder:
+            level: INFO
+            handlers: [ 'consoleHandler' ]
+            qualname: VAE_FeatureBuilder
             propagate: 0
 
 main_process:

@@ -22,7 +22,7 @@ class Rankfusion:
 
         self.logger = logger
         self.logger.info('start Rankfusion ')
-        self.logger.info('Rankfusion parameters -> (k : %d)' % self.k)
+        self.logger.debug('Rankfusion parameters -> (k : %d)' % self.k)
 
     def make_rank(self, algo_pools: List[str]) -> dict:
         '''
@@ -39,5 +39,5 @@ class Rankfusion:
                 if item in algo_pool:
                     Reco_ranking[item] = Reco_ranking.setdefault(item, 0) + 1.0/(self.k + algo_pool.index(item)+1)
         Reco_ranking = {k: v for k, v in sorted(Reco_ranking.items(), key=lambda item: item[1])}
-        self.logger.info("Recomendation items : %s" % Reco_ranking)
+        self.logger.debug("Recomendation items : %s" % Reco_ranking)
         return Reco_ranking

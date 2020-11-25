@@ -91,7 +91,7 @@ class AlsFb:
         train_tuples, self.train_user2idx, self.train_item2idx = self.to_sparse_tuples(cf_feature, item_count,
                                                                                        self.user_n, self.item_n)
         self.train_sparse = self.to_sparse(np.array(train_tuples)[:, :-1], np.array(train_tuples)[:, -1])
-        print(self.train_sparse.shape)  # loger 대체
+        logger.debug(self.train_sparse.shape)
 
         for params in grid:
             model = implicit.als.AlternatingLeastSquares(factors=params['factors'],
@@ -107,8 +107,8 @@ class AlsFb:
                 self.max_ndcg = ndcg
                 self.best_params = params
 
-        print("ALS best hyperparameter : ", self.best_params)
-        print("ALS max ndcg : ", self.max_ndcg)
+        logger.debug("ALS best hyperparameter : ", self.best_params)
+        logger.debug("ALS max ndcg : ", self.max_ndcg)
 
         self.als_model = implicit.als.AlternatingLeastSquares(factors=self.best_params['factors'],
                                                               regularization=self.best_params['regularization'],
@@ -116,6 +116,7 @@ class AlsFb:
         data_conf = (self.train_sparse.T * self.best_params['alpha_val']).astype('double')
         self.als_model.fit(data_conf, show_progress=False)
 
+    @logging_time
     def reco(self):
         train_idx2item = {y: x for x, y in self.train_item2idx.items()}
         final_reco = []
