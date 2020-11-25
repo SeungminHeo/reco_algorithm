@@ -89,8 +89,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     FeatureBuilder = KafkaFeatureBuilder(CONFIG[args.runningEnvironment])
 
-    als_client = MongoConnection('als')
-    reco_client = MongoConnection('recoResult')
+    als_client = MongoConnection('als', args.runningEnvironment)
+    reco_client = MongoConnection('recoResult', args.runningEnvironment)
 
     reco = Reco(reco_config, logger, FeatureBuilder, als_client, reco_client)
     reco.run(args.hours)

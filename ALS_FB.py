@@ -153,12 +153,14 @@ if __name__ == "__main__":
 
     # kafka parser
     parser = ArgumentParser()
-    parser.add_argument("--numMessage", "-n", type=int, help="number of messages to poll")
+    parser.add_argument("--hours", type=int, help="interval in hours from now to get train data")
+    parser.add_argument("--runningEnvironment", "-re", type=str, help="environment that runs reco engine.",
+                        choices=["server", "local"])
 
     args = parser.parse_args()
-    FeatureBuilder = KafkaFeatureBuilder(CONFIG)
+    FeatureBuilder = KafkaFeatureBuilder(CONFIG[args.runningEnvironment])
 
-    mongo_client = MongoConnection('als')
+    mongo_client = MongoConnection('als', args.runningEnvironment)
 
     als_fb = AlsFb(fb_config, logger, FeatureBuilder, mongo_client)
     als_fb.run()
