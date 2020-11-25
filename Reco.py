@@ -84,9 +84,10 @@ if __name__ == "__main__":
     # kafka parser
     parser = ArgumentParser()
     parser.add_argument("--hours", type=int, help="interval in hours from now to get train data")
+    parser.add_argument("--runningEnvironment", "-re", type=str, help="environment that runs reco engine.", choices=["server", "local"] )
 
     args = parser.parse_args()
-    FeatureBuilder = KafkaFeatureBuilder(CONFIG)
+    FeatureBuilder = KafkaFeatureBuilder(CONFIG[args.runningEnvironment])
 
     als_client = MongoConnection('als')
     reco_client = MongoConnection('recoResult')
