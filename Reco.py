@@ -6,7 +6,7 @@ from datetime import datetime
 from argparse import ArgumentParser
 
 from utils.kafka_config import CONFIG
-from utils.kafka_utils import KafkaFeatureBuilder
+from utils.kafka_utils import KafkaFeatureBuilder, logging_time
 from utils.mongo_connect import MongoConnection
 from model.rankfusion import Rankfusion
 
@@ -34,6 +34,7 @@ class Reco:
     def reco_result(self, data):
         return {x['piwikId']: list(x['recoResult'].keys()) for x in data}
 
+    @logging_time
     def load_model(self, time_diff_hours: int):
         als_mongo = als_client.load_all()
         gc_kafka = json.loads(self.FeatureBuilder.GC(
@@ -47,6 +48,7 @@ class Reco:
         self.als_reco = self.reco_result(als_mongo)
         self.gc_reco = list(gc_kafka.keys())[:20]
 
+    @logging_time
     def reco(self):
         final_reco = []
         for user_id, reco_items in self.als_reco.items():
@@ -61,14 +63,12 @@ class Reco:
             final_reco.append(user_reco)
         reco_client.write_many(final_reco)
 
+    @logging_time
     def run(self, time_diff_hours):
         while True:
-            start = datetime.utcnow()
             self.load_model(time_diff_hours=time_diff_hours)
             self.reco()
-            end = datetime.utcnow()
-            logger.info("Training model for recommendation is done."
-                        "Training time is %s sec." % (end - start) )
+            logger.info("Training model for recommendation is done.")
 
 
 
@@ -79,7 +79,7 @@ if __name__ == "__main__":
 
     # insert "logging_config" values into logging config
     logging.config.dictConfig(logging_config)
-    logger = logging.getLogger('ALS_FeatureBuilder')
+    logger = logging.getLogger('Reco')
 
     # kafka parser
     parser = ArgumentParser()

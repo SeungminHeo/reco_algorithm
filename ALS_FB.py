@@ -11,7 +11,7 @@ import implicit.evaluation
 from sklearn.model_selection import ParameterGrid
 
 from utils.kafka_config import CONFIG
-from utils.kafka_utils import KafkaFeatureBuilder
+from utils.kafka_utils import KafkaFeatureBuilder, logging_time
 from utils.mongo_connect import MongoConnection
 
 
@@ -72,10 +72,11 @@ class AlsFb:
                                  dtype="float32",
                                  shape=(data[:, 0].max() + 1, data[:, 1].max() + 1))
 
-    def train(self):
+    @logging_time
+    def train(self, time_diff_hours: int):
         item_count = {}
         cf_feature = json.loads(self.FeatureBuilder.CF(
-            time_diff_hours=self.kafka_config.get('time')
+            time_diff_hours=time_diff_hours
         ))
         grid = ParameterGrid({
             "factors": [10, 30, 50, 70, 90, 110, 150, 200, 250, 300],
@@ -136,9 +137,10 @@ class AlsFb:
 
         self.mongo_client.write_many(final_reco)
 
-    def run(self):
+    @logging_time
+    def run(self, time_diff_hours: int):
         while True:
-            self.train()
+            self.train(time_diff_hours)
             self.reco()
 
 
@@ -163,4 +165,4 @@ if __name__ == "__main__":
     mongo_client = MongoConnection('als', args.runningEnvironment)
 
     als_fb = AlsFb(fb_config, logger, FeatureBuilder, mongo_client)
-    als_fb.run()
+    als_fb.run(args.hours)
