@@ -14,6 +14,12 @@ model_config:
     rankfusion:
       params:
         k : 0
+    vae:
+      lr : 5e-3
+      batch_size : 200
+      epochs : 100
+      logging_info_freq : 100
+
 logging_config:
     version: 1
     disable_existing_loggers: True
@@ -35,8 +41,15 @@ logging_config:
             handlers: ['consoleHandler']
             qualname: simpleExample
             propagate: 0
+
 main_process:
     als_fb:
+      kafka:
+        time: 24
+      to_sparse:
+        user_n: 0
+        item_n: 0
+    vae_fb:
       kafka:
         time: 24
       to_sparse:

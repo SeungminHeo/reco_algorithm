@@ -9,7 +9,20 @@ Recommendation algorithm set
 pip install implicit
 ```
 
+### Installing Tensorflow
+```
+pip install tensorflow==2.3.0
+```
 
+### etc.
+```
+pip install tqdm
+pip install numpy
+pip install pandas
+pip install scipy==1.4.1
+pip install scikit-learn
+pip install PyYAML
+```
 
 ## Kafka Setting 
 
