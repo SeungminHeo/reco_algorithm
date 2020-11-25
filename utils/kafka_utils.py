@@ -65,7 +65,7 @@ class KafkaFeatureBuilder(KafkaTopicConsumer):
     def __init__(self, kafka_config: Dict):
         super().__init__(kafka_config)
 
-    def CF(self, group_id: str, topic_name: str, time_diff_hours: int) -> str:
+    def CF(self, time_diff_hours: int) -> str:
         """
         Feature building for Collaborative Filtering.
         :param group_id: (String) configure group_id for Kafka consumer
@@ -73,12 +73,13 @@ class KafkaFeatureBuilder(KafkaTopicConsumer):
         :param time_diff_hours: (Integer) The time interval you want to rewind in hours.
         :return: (String) Feature for CF.
         """
-        feature_message = self.fetch_batch_messages_by_time(group_id=group_id,
-                                                            topic_name=topic_name,
-                                                            time_diff_hours=time_diff_hours)
+        feature_message = self.fetch_batch_messages_by_time(
+            group_id=self.config["kafka_config"]["consumer_groups"]["cf_model_feed_by_time"],
+            topic_name=self.config["kafka_topics"]["click_log"],
+            time_diff_hours=time_diff_hours)
         return self.cf_feature_build(self.count_by_piwikId_itemId(feature_message))
 
-    def GC(self, group_id: str, topic_name: str, time_diff_hours: int, topN: int) -> str:
+    def GC(self, time_diff_hours: int, topN: int) -> str:
         """
         Feature building for Global Click.
         :param group_id: (String) configure group_id for Kafka consumer
@@ -87,12 +88,13 @@ class KafkaFeatureBuilder(KafkaTopicConsumer):
         :param topN: (Integer) The number of topN items to calcuration
         :return: (String) Feature for GC.
         """
-        feature_message = self.fetch_batch_messages_by_time(group_id=group_id,
-                                                            topic_name=topic_name,
-                                                            time_diff_hours=time_diff_hours)
+        feature_message = self.fetch_batch_messages_by_time(
+            group_id=self.config["kafka_config"]["consumer_groups"]["ranking_by_time"],
+            topic_name=self.config["kafka_topics"]["click_log"],
+            time_diff_hours=time_diff_hours)
         return self.gc_feature_build(self.count_by_itemId(feature_message), topN=topN)
 
-    def CategoryGC(self, group_id: str, topic_name: str, time_diff_hours: int, topN: int) -> str:
+    def CategoryGC(self, time_diff_hours: int, topN: int) -> str:
         """
         Feature building for Global Click By Category.
         :param group_id: (String) configure group_id for Kafka consumer
@@ -101,9 +103,10 @@ class KafkaFeatureBuilder(KafkaTopicConsumer):
         :param topN: (Integer) The number of topN items to calcuration
         :return: (String) Feature for GC.
         """
-        feature_message = self.fetch_batch_messages_by_time(group_id=group_id,
-                                                            topic_name=topic_name,
-                                                            time_diff_hours=time_diff_hours)
+        feature_message = self.fetch_batch_messages_by_time(
+            group_id=self.config["kafka_config"]["consumer_groups"]["category_ranking_by_time"],
+            topic_name=self.config["kafka_topics"]["click_log"],
+            time_diff_hours=time_diff_hours)
         return self.category_gc_feature_build(self.count_by_categoryId_itemId(feature_message), topN=topN)
 
     @staticmethod

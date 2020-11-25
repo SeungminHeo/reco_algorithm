@@ -46,8 +46,6 @@ class VAE_FB:
     def train(self):
         
         CF_feature = json.loads(self.FeatureBuilder.CF(
-            group_id=CONFIG["kafka_config"]["consumer_groups"]["cf_model_feed_by_time"],
-            topic_name=CONFIG["kafka_topics"]["click_log"],
             time_diff_hours=self.kafka_config.get('time')
         ))
 

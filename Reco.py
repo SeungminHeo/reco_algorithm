@@ -1,6 +1,7 @@
 import yaml
 import json
 import logging.config
+from datetime import datetime
 
 from argparse import ArgumentParser
 
@@ -33,18 +34,14 @@ class Reco:
     def reco_result(self, data):
         return {x['piwikId']: list(x['recoResult'].keys()) for x in data}
 
-    def load_model(self):
+    def load_model(self, time_diff_hours: int):
         als_mongo = als_client.load_all()
         gc_kafka = json.loads(self.FeatureBuilder.GC(
-            group_id=CONFIG["kafka_config"]["consumer_groups"]["ranking_by_time"],
-            topic_name=CONFIG["kafka_topics"]["click_log"],
-            time_diff_hours=3,
+            time_diff_hours=time_diff_hours,
             topN=100
         ))
         cate_gc_kafka = json.loads(FeatureBuilder.CategoryGC(
-            group_id=CONFIG["kafka_config"]["consumer_groups"]["category_ranking_by_time"],
-            topic_name=CONFIG["kafka_topics"]["click_log"],
-            time_diff_hours=3,
+            time_diff_hours=time_diff_hours,
             topN=100
         ))
         self.als_reco = self.reco_result(als_mongo)
@@ -64,10 +61,15 @@ class Reco:
             final_reco.append(user_reco)
         reco_client.write_many(final_reco)
 
-    def run(self):
+    def run(self, time_diff_hours):
         while True:
-            self.load_model()
+            start = datetime.utcnow()
+            self.load_model(time_diff_hours=time_diff_hours)
             self.reco()
+            end = datetime.utcnow()
+            logger.info("Training model for recommendation is done."
+                        "Training time is %s sec." % (end - start) )
+
 
 
 if __name__ == "__main__":
@@ -81,7 +83,7 @@ if __name__ == "__main__":
 
     # kafka parser
     parser = ArgumentParser()
-    parser.add_argument("--numMessage", "-n", type=int, help="number of messages to poll")
+    parser.add_argument("--hours", type=int, help="interval in hours from now to get train data")
 
     args = parser.parse_args()
     FeatureBuilder = KafkaFeatureBuilder(CONFIG)
@@ -90,4 +92,4 @@ if __name__ == "__main__":
     reco_client = MongoConnection('recoResult')
 
     reco = Reco(reco_config, logger, FeatureBuilder, als_client, reco_client)
-    reco.run()
+    reco.run(args.hours)
