@@ -55,12 +55,13 @@ class Reco:
         for user_id, reco_items in self.als_reco.items():
             user_reco = {}
             if self.reco_config['gc'].get('is_used'):
-                reco_items = list(self.rank.make_rank([reco_items, self.gc_reco]).keys())
+                reco_items = self.rank.make_rank([reco_items, self.gc_reco])
+            else:
+                reco_items = self.rank.make_rank([reco_items])
 
             user_reco["piwikId"] = user_id
             user_reco['recoResult'] = reco_items
             final_reco.append(user_reco)
-
         reco_client.write_many(final_reco)
 
     def run(self):
