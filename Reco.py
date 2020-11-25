@@ -79,7 +79,7 @@ if __name__ == "__main__":
 
     # insert "logging_config" values into logging config
     logging.config.dictConfig(logging_config)
-    logger = logging.getLogger('ALS feature_builder')
+    logger = logging.getLogger('ALS_FeatureBuilder')
 
     # kafka parser
     parser = ArgumentParser()

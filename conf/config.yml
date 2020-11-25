@@ -41,6 +41,11 @@ logging_config:
             handlers: ['consoleHandler']
             qualname: simpleExample
             propagate: 0
+        ALS_FeatureBuilder:
+            level: DEBUG
+            handlers: [ 'consoleHandler' ]
+            qualname: ALS_FeatureBuilder
+            propagate: 0
 
 main_process:
     als_fb:
