@@ -2,6 +2,14 @@
 
 Recommendation algorithm set
 
+## Reco Setting
+
+### Installing Implicit
+```
+pip install implicit
+```
+
+
 
 ## Kafka Setting 
 
@@ -33,4 +41,25 @@ cd vcpkg
 
 ```
 python3 kafka_example.py -n 1000
+```
+
+### MongoDB Example
+
+```
+client = mongo_utils.MongoConnection('als')
+
+# 하나의 유저에 대한 결과만 작성할 때
+client.write_one({'piwikId': 'userId1', 'recoResult': {'itemId1': 10, 'itemId2': 9}})
+
+# 여러 유저에 대한 결과를 작성할 때
+client.write_many([{'piwikId': 'userId1', 'recoResult': {'itemId1': 10, 'itemId2': 9}}, {'piwikId': 'userId2', 'recoResult': {'itemId1': 6, 'itemId2': 10}}])
+
+# 하나의 유저에 대한 결과만 가져올 때
+client.load_one('userId1')
+
+# 여러 유저에 대한 결과를 가져올 때
+client.load_many(['userId1', 'userId2'])
+
+# 모든 결과를 가져올 때
+client.load_all()
 ```

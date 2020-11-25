@@ -5,6 +5,12 @@ model_config:
         nf : 200
         alpha : 40
         iteration : 15
+    implicit_als:
+      params:
+        factors: 300
+        regularization: 0.1
+        iteration: 20
+        alpha_val : 100
     rankfusion:
       params:
         k : 0
@@ -32,7 +38,6 @@ logging_config:
         root:
             level: DEBUG
             handlers: ['consoleHandler']
-            level: DEBUG
         simpleExample:
             level: DEBUG
             handlers: ['consoleHandler']
