@@ -9,8 +9,14 @@ from vae import VAE, VAE_STRT
 sys.path.insert(1, '../evaluate')
 from evaluate import Evaluate
 
+from utils.kafka_config import CONFIG
+from utils.kafka_utils import KafkaFeatureBuilder
+
+from utils.mongo_connect import MongoConnection
+
+
 class VAE_FB:
-    def __init__(self, model_config, fb_config, logger, FeatureBuilder=None):
+    def __init__(self, model_config, fb_config, logger, FeatureBuilder=None, mongo_client=None):
         self.logger = logger
         self.logger.info("Begin VAE_FB")
 
@@ -18,12 +24,13 @@ class VAE_FB:
         self.FeatureBuilder = FeatureBuilder
         self.kafka_config = fb_config["kafka"]
 
+        self.mongo_client = mongo_client
+
         layers_common = {"activity_regularizer": tf.keras.regularizers.l2(0.0), 
                          "bias_initializer": tf.keras.initializers.TruncatedNormal(stddev=0.001)}
             
         layer_1 = {"units": 60, 
                    "activation": "tanh", 
-                   #"input_dim": item_size,
                    **layers_common,
                    }
 
@@ -90,15 +97,21 @@ class VAE_FB:
 
         self.logger.info("Recommendation Successful!")
         self.logger.info("Time taken: {:.3f} SECONDS".format((time.time()-self.stime)/60))
+        
+        final_reco = []
 
-        with open(config.rec_fname, "w") as f:
-            json.dump(rec_pool, f)
+        for user, item in rec_pool.items():
+            user_reco = dict()
+            user_reco["piwikId"] = user
+            user_reco['recoResult'] = item
+            final_reco.append(user_reco)
 
-        self.logger.info(f"Recommendation saved to {config.rec_fname}")
+        self.mongo_client.write_many(final_reco)
     
     def run(self):
-        self.train()
-        self.reco()
+        while True:
+            self.train()
+            self.reco()
 
 if __name__=="__main__":
     configs = yaml.load(open("./config.yml").read(), Loader=yaml.Loader)
@@ -114,6 +127,8 @@ if __name__=="__main__":
 
     args = parser.parse_args()
     FeatureBuilder = KafkaFeatureBuilder(CONFIG)
+    
+    mongo_client = MongoConnection('vae')
 
-    vae_fb = VAE_FB(model_config, fb_config, logger, FeatureBuilder)
+    vae_fb = VAE_FB(model_config, fb_config, logger, FeatureBuilder, mongo_client)
     vae_fb.run()
