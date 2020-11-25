@@ -1,9 +1,27 @@
 import json
+import time
 from datetime import datetime, timedelta, timezone
+from functools import wraps
 from itertools import groupby
 from operator import itemgetter
 from confluent_kafka import Consumer, TopicPartition, Message
 from typing import List, Dict
+
+
+def logging_time(original_fn):
+    @wraps(original_fn)
+    def wrapper_fn(*args, **kwargs):
+        start_time = time.time()
+        result = original_fn(*args, **kwargs)
+        end_time = time.time()
+        print(
+            "실행시간[{}]: {} Sec".format(
+                original_fn.__name__, round(end_time - start_time, 2)
+            )
+        )
+        return result
+
+    return wrapper_fn
 
 
 class KafkaTopicConsumer:
@@ -65,6 +83,7 @@ class KafkaFeatureBuilder(KafkaTopicConsumer):
     def __init__(self, kafka_config: Dict):
         super().__init__(kafka_config)
 
+    @logging_time
     def CF(self, time_diff_hours: int) -> str:
         """
         Feature building for Collaborative Filtering.
@@ -79,6 +98,7 @@ class KafkaFeatureBuilder(KafkaTopicConsumer):
             time_diff_hours=time_diff_hours)
         return self.cf_feature_build(self.count_by_piwikId_itemId(feature_message))
 
+    @logging_time
     def GC(self, time_diff_hours: int, topN: int) -> str:
         """
         Feature building for Global Click.
@@ -94,6 +114,7 @@ class KafkaFeatureBuilder(KafkaTopicConsumer):
             time_diff_hours=time_diff_hours)
         return self.gc_feature_build(self.count_by_itemId(feature_message), topN=topN)
 
+    @logging_time
     def CategoryGC(self, time_diff_hours: int, topN: int) -> str:
         """
         Feature building for Global Click By Category.
@@ -110,6 +131,7 @@ class KafkaFeatureBuilder(KafkaTopicConsumer):
         return self.category_gc_feature_build(self.count_by_categoryId_itemId(feature_message), topN=topN)
 
     @staticmethod
+    @logging_time
     def cf_feature_build(processed_count: List[Dict]) -> str:
         sorted_click_count = sorted(processed_count, key=itemgetter("piwikId", "clickCount"), reverse=True)
         groupby_click_count = groupby(sorted_click_count, key=itemgetter("piwikId"))
@@ -130,6 +152,7 @@ class KafkaFeatureBuilder(KafkaTopicConsumer):
         return feature_string
 
     @staticmethod
+    @logging_time
     def gc_feature_build(processed_count: List[Dict], topN: int) -> str:
         sorted_click_count = sorted(processed_count, key=itemgetter("clickCount"), reverse=True)
 
@@ -145,6 +168,7 @@ class KafkaFeatureBuilder(KafkaTopicConsumer):
         return feature_string
 
     @staticmethod
+    @logging_time
     def category_gc_feature_build(processed_count: List[Dict], topN: int) -> str:
         sorted_click_count = sorted(processed_count, key=itemgetter("categoryId", "clickCount"), reverse=True)
         groupby_click_count = groupby(sorted_click_count, key=itemgetter("categoryId"))
@@ -167,6 +191,7 @@ class KafkaFeatureBuilder(KafkaTopicConsumer):
         return feature_string
 
     @staticmethod
+    @logging_time
     def count_by_categoryId_itemId(messages: List[Dict]) -> List[Dict]:
         messages = filter(lambda x: x["categoryId"] is not None, messages)
         sorted_msgs = sorted(messages, key=itemgetter('categoryId', 'itemId'))
@@ -181,6 +206,7 @@ class KafkaFeatureBuilder(KafkaTopicConsumer):
         return processed_msgs
 
     @staticmethod
+    @logging_time
     def count_by_piwikId_itemId(messages: List[Dict]) -> List[Dict]:
         sorted_msgs = sorted(messages, key=itemgetter('piwikId', 'itemId'), reverse=True)
         groupby_msgs = groupby(sorted_msgs, key=itemgetter('piwikId', 'itemId'))
@@ -194,6 +220,7 @@ class KafkaFeatureBuilder(KafkaTopicConsumer):
         return processed_msgs
 
     @staticmethod
+    @logging_time
     def count_by_itemId(messages: List[Dict]) -> List[Dict]:
         sorted_msgs = sorted(messages, key=itemgetter('itemId'), reverse=True)
         groupby_msgs = groupby(sorted_msgs, key=itemgetter('itemId'))
