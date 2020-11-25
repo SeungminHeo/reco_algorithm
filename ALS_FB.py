@@ -75,8 +75,6 @@ class AlsFb:
     def train(self):
         item_count = {}
         cf_feature = json.loads(self.FeatureBuilder.CF(
-            group_id=CONFIG["kafka_config"]["consumer_groups"]["cf_model_feed_by_time"],
-            topic_name=CONFIG["kafka_topics"]["click_log"],
             time_diff_hours=self.kafka_config.get('time')
         ))
         grid = ParameterGrid({
@@ -150,7 +148,7 @@ if __name__ == "__main__":
 
     # insert "logging_config" values into logging config
     logging.config.dictConfig(logging_config)
-    logger = logging.getLogger('ALS feature_builder')
+    logger = logging.getLogger('ALS_FeatureBuilder')
 
     # kafka parser
     parser = ArgumentParser()
