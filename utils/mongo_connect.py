@@ -1,18 +1,21 @@
 import sys
 from pymongo import MongoClient
 
+from utils.kafka_utils import logging_time
+
 sys.path.append('conf')
-import mongo_config
+from conf.mongo_config import DATABASE_CONFIG
 
 
 class MongoConnection:
-    def __init__(self, collection):
-        self.host = mongo_config.DATABASE_CONFIG['host']
-        self.port = mongo_config.DATABASE_CONFIG['port']
-        self.user = mongo_config.DATABASE_CONFIG['user']
-        self.password = mongo_config.DATABASE_CONFIG['password']
-        self.authSource = mongo_config.DATABASE_CONFIG['authSource']
-        self.dbname = mongo_config.DATABASE_CONFIG['dbname']
+    def __init__(self, collection, running_environment):
+        config = DATABASE_CONFIG[running_environment]
+        self.host = config['host']
+        self.port = config['port']
+        self.user = config['user']
+        self.password = config['password']
+        self.authSource = config['authSource']
+        self.dbname = config['dbname']
         self.conn = None
 
         try:
@@ -42,6 +45,7 @@ class MongoConnection:
                 # insert error
                 print('Insert error:', e)
 
+    @logging_time
     def write_many(self, docs):
         if not self.conn:
             raise ConnectionError("Must connect first")
@@ -85,6 +89,7 @@ class MongoConnection:
             
             return results
 
+    @logging_time
     def load_all(self):
         if not self.conn:
             raise ConnectionError("Must connect first")
