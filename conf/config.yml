@@ -15,12 +15,10 @@ model_config:
       params:
         k : 0
     vae:
-      lr : 1e-3
-      weight_decay : 0.0
-      batch_size : 64
+      lr : 5e-3
+      batch_size : 200
       epochs : 100
       logging_info_freq : 100
-      rec_fname : "VAE.json"
 
 logging_config:
     version: 1
