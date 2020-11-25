@@ -43,10 +43,10 @@ class VAE_FB:
                                  "normalize_eps": True,
                                  }
 
-    def train(self):
+    def train(self, time_diff_hours):
         
         CF_feature = json.loads(self.FeatureBuilder.CF(
-            time_diff_hours=self.kafka_config.get('time')
+            time_diff_hours=time_diff_hours
         ))
 
         train_items = set()
@@ -105,9 +105,9 @@ class VAE_FB:
 
         self.mongo_client.write_many(final_reco)
     
-    def run(self):
+    def run(self, time_diff_hours: int):
         while True:
-            self.train()
+            self.train(time_diff_hours)
             self.reco()
 
 if __name__=="__main__":
@@ -120,7 +120,8 @@ if __name__=="__main__":
     logger = logging.getLogger('evaluate')
 
     parser = ArgumentParser()
-    parser.add_argument("--numMessage", "-n", type=int, help="number of messages to poll")
+    parser.add_argument("--hours", type=int, help="interval in hours from now to get train data")
+    parser.add_argument("--runningEnvironment", "-re", type=str, help="environment that runs reco engine.",
 
     args = parser.parse_args()
     FeatureBuilder = KafkaFeatureBuilder(CONFIG)
@@ -128,4 +129,4 @@ if __name__=="__main__":
     mongo_client = MongoConnection('vae')
 
     vae_fb = VAE_FB(model_config, fb_config, logger, FeatureBuilder, mongo_client)
-    vae_fb.run()
+    vae_fb.run(args.hours)
