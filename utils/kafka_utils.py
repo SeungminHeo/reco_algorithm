@@ -200,6 +200,4 @@ class KafkaFeatureBuilder(KafkaTopicConsumer):
             "clickCount": list(value).__len__()
         } for key, value in groupby_msgs]
 
-        print(processed_msgs.__len__())
-
         return processed_msgs
