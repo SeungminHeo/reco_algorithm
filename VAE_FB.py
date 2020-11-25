@@ -4,16 +4,15 @@ from typing import List
 import yaml
 import numpy as np
 import tensorflow as tf
-from dataloader import *
+
 from vae import VAE, VAE_STRT
 sys.path.insert(1, '../evaluate')
 from evaluate import Evaluate
 
 from utils.kafka_config import CONFIG
 from utils.kafka_utils import KafkaFeatureBuilder
-
 from utils.mongo_connect import MongoConnection
-
+from utils.fb_utils import *
 
 class VAE_FB:
     def __init__(self, model_config, fb_config, logger, FeatureBuilder=None, mongo_client=None):
@@ -127,7 +126,7 @@ if __name__=="__main__":
 
     args = parser.parse_args()
     FeatureBuilder = KafkaFeatureBuilder(CONFIG)
-    
+
     mongo_client = MongoConnection('vae')
 
     vae_fb = VAE_FB(model_config, fb_config, logger, FeatureBuilder, mongo_client)
