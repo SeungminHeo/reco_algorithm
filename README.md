@@ -5,6 +5,8 @@ Recommendation algorithm set
 ## Reco Setting
 
 ### Installing Implicit
+Implicit을 사용하기 위해서는 gcc 가 필요합니다.
+
 ```
 pip install implicit
 ```
@@ -75,4 +77,21 @@ client.load_many(['userId1', 'userId2'])
 
 # 모든 결과를 가져올 때
 client.load_all()
+```
+
+### Running Process
+
+```
+## ALS_FB
+docker build -t als_fb -f ALS_FB.Dockerfile . --no-cache
+docker run als_fb -re server --hours 72
+# run in daemon
+docker run -d als_fb -re server --hours 72
+
+## Reco Process
+docker build -t reco_engine -f Reco.Dockerfile . --no-cache
+docker run reco_engine -re server --hours 72
+
+# run in daemon
+docker run -d reco_engine -re server --hours 72
 ```
