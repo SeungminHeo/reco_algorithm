@@ -1,5 +1,5 @@
 import sys
-from pymongo import MongoClient
+from pymongo import MongoClient, UpdateOne
 
 from utils.kafka_utils import logging_time
 
@@ -48,17 +48,14 @@ class MongoConnection:
     @logging_time
     def write_many(self, docs):
         if not self.conn:
-            raise ConnectionError("Must connect first")
-        else:
-            for doc in docs:
-                try:
-                    if self.conn.find_one({'piwikId': doc['piwikId']}):
-                        self.conn.update_one({'piwikId': doc['piwikId']}, {'$set': {'recoResult': doc['recoResult']}})
-                    else:
-                        self.conn.insert_one(doc)
-                except Exception as e:
-                    # insert error
-                    print('Insert error:', e)
+            raise ConnectionError("Must connect fisrt")
+        try:
+            bulk_requests = [
+                UpdateOne({'piwikId': doc['piwikId']}, {'$set': {'recoResult': doc['recoResult']}}, upsert=True)
+                for doc in docs]
+            self.conn.bulk_write(bulk_requests)
+        except Exception as e:
+            print(e)
 
     def load_one(self, piwikId):
         if not self.conn:
