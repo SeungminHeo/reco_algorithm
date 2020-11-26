@@ -9,4 +9,4 @@ COPY . .
 
 RUN pip install -r requirements.txt
 
-ENTRYPOINT ["python", "Reco.py", "-re", "local", "--hours", "72"]
+ENTRYPOINT ["python", "Reco.py"]
