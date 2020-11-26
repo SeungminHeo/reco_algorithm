@@ -26,11 +26,11 @@ server:
             ranking_by_time: RankingByTime
             category_ranking_by_time: CategoryRankingByTime
             reco_engine: RecoEngine
-        kafka_topics:
-            click_log: ClickLog
-            log_data_raw: LogDataRaw
-            order_complete_log: OrderCompleteLog
-            search_log: SearchLog
-            cart_log: CartLog
-            click_matrix: ClickMatrix
-            click_ranking: ClickRanking
+    kafka_topics:
+        click_log: ClickLog
+        log_data_raw: LogDataRaw
+        order_complete_log: OrderCompleteLog
+        search_log: SearchLog
+        cart_log: CartLog
+        click_matrix: ClickMatrix
+        click_ranking: ClickRanking
