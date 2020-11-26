@@ -79,9 +79,9 @@ class AlsFb:
             time_diff_hours=time_diff_hours
         ))
         grid = ParameterGrid({
-            "factors": [10, 30, 50, 70, 90, 110, 150, 200, 250, 300],
-            'regularization': [0.001, 0.01, .1, 1, 10, 20, 40],
-            'iterations': [10, 20, 30],
+            "factors": [70, 90, 150, 200, 250, 300],
+            'regularization': [0.01, .1, 1],
+            'iterations': [10, 20],
             'alpha_val': [10, 50, 100]
         })
 
@@ -142,6 +142,7 @@ class AlsFb:
         while True:
             self.train(time_diff_hours)
             self.reco()
+            logger.info("Training Model is done.")
 
 
 if __name__ == "__main__":
