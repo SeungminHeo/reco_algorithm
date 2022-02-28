@@ -101,7 +101,7 @@ class AlsFb:
             data_conf = (self.train_sparse.T * params['alpha_val']).astype('double')
             data_split = implicit.evaluation.train_test_split(data_conf)
             train_data, test_data = data_split[0], data_split[1]
-            model.fit(train_data, show_progress=False)
+            model.fit(train_data.transpose(), show_progress=False)
             ndcg = implicit.evaluation.ndcg_at_k(model, train_user_items=train_data, test_user_items=test_data, K=5,
                                                  num_threads=8, show_progress=False)
             if self.max_ndcg < ndcg:
